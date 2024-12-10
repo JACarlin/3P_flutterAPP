@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:my_ecommerce_app/controllers/user_controller.dart';
 
 class ProfileView extends StatelessWidget {
-  final Map<String, dynamic> userProfile = {
-    "name": "John Doe",
-    "email": "john.doe@example.com",
-    "password": "securepassword123",
-    "address": "123 Main Street, City, Country",
-    "creationDate": "2024-12-08T02:32:32.941Z",
-  };
-
   String _formatDate(String dateString) {
     final date = DateTime.parse(dateString);
     return DateFormat('dd/MM/yyyy HH:mm').format(date);
@@ -17,59 +11,98 @@ class ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userController = Provider.of<UserController>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Perfil'),
         backgroundColor: Colors.deepPurple,
       ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.deepPurple, Colors.purpleAccent],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Información del Perfil',
-                style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: userController.fetchProfile(), // Llama al método para obtener el perfil
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error: ${snapshot.error}',
+                style: TextStyle(color: Colors.red, fontSize: 18),
               ),
-              SizedBox(height: 20),
-              _buildProfileField('Nombre', userProfile['name']),
-              SizedBox(height: 15),
-              _buildProfileField('Correo Electrónico', userProfile['email']),
-              SizedBox(height: 15),
-              _buildProfileField('Contraseña', '*' * userProfile['password'].length),
-              SizedBox(height: 15),
-              _buildProfileField('Dirección', userProfile['address']),
-              SizedBox(height: 15),
-              _buildProfileField('Fecha de Creación', _formatDate(userProfile['creationDate'])),
-              SizedBox(height: 30),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 80),
+            );
+          } else if (snapshot.hasData) {
+            final userProfile = snapshot.data!;
+            return _buildProfileContent(context, userProfile);
+          } else {
+            return Center(
+              child: Text(
+                'No se encontró información del perfil',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildProfileContent(BuildContext context, Map<String, dynamic> userProfile) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.deepPurple, Colors.purpleAccent],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Información del Perfil',
+              style: TextStyle(
+                fontSize: 24,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20),
+            _buildProfileField('Nombre', userProfile['name']),
+            SizedBox(height: 15),
+            _buildProfileField('Correo Electrónico', userProfile['email']),
+            SizedBox(height: 15),
+            _buildProfileField('Contraseña', '*' * userProfile['password'].length),
+            SizedBox(height: 15),
+            _buildProfileField('Dirección', userProfile['address']),
+            SizedBox(height: 15),
+            _buildProfileField(
+              'Fecha de Creación',
+              _formatDate(userProfile['creationDate']),
+            ),
+            SizedBox(height: 30),
+            Center(
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
                   ),
-                  child: Text(
-                    'Regresar',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 80),
+                ),
+                child: Text(
+                  'Regresar',
+                  style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

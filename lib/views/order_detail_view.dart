@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:my_ecommerce_app/models/order.dart';
 import 'package:my_ecommerce_app/views/gMapsHtml.dart'; // Importar GMapsHtml
 
 class OrderDetailView extends StatefulWidget {
@@ -10,15 +9,16 @@ class OrderDetailView extends StatefulWidget {
 class _OrderDetailViewState extends State<OrderDetailView> {
   @override
   Widget build(BuildContext context) {
-    // Supongamos que la orden tiene una ubicación con latitud y longitud
-    final Order order = ModalRoute.of(context)!.settings.arguments as Order;
+  final Map<String, dynamic> order = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+
 
     // Construir la URL del mapa con las coordenadas de la entrega
-    final String mapUrl = 'https://www.google.com/maps?q=${order.deliveryLocation.lat},${order.deliveryLocation.lng}&z=18&output=embed';
+    final String mapUrl =
+        'https://www.google.com/maps?q=${order["deliveryLocation"]["lat"]},${order["deliveryLocation"]["lng"]}&z=18&output=embed';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detalle de la Orden #${order.orderId}', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('Detalle de la Orden #${order["_id"]}', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.deepPurple, // Color principal
       ),
       body: Padding(
@@ -36,11 +36,11 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text('Estado: ${order.status}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text('Estado: ${order["status"]}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 10),
-                    Text('Total: \$${order.total}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text('Total: \$${order["total"]}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 10),
-                    Text('Fecha: ${_formatDate(order.creationDate)}', style: TextStyle(fontSize: 16)),
+                    Text('Fecha: ${_formatDate(DateTime.parse(order["creationDate"]))}', style: TextStyle(fontSize: 16)),
                   ],
                 ),
               ),
@@ -59,13 +59,41 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text('Productos:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    ...order.products.map((product) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Text(
-                            'ID: ${product.productId}, Cantidad: ${product.quantity}',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        )).toList(),
+                    ...order["products"].map<Widget>((product) {
+                      final productInfo = product["productId"];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: Image.network(
+                                productInfo["url"],
+                                height: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    productInfo["name"],
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                  Text('Precio: \$${productInfo["price"]}'),
+                                  Text('Cantidad: ${product["quantity"]}'),
+                                  Text('Total: \$${productInfo["price"] * product["quantity"]}'),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ],
                 ),
               ),
@@ -73,11 +101,11 @@ class _OrderDetailViewState extends State<OrderDetailView> {
             SizedBox(height: 20),
 
             // Mapa de la ubicación
-            Text('Ubicación de entrega:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Ubicación del paquete:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
             SizedBox(
               height: 300,
-              child: GMapsHtml(url: mapUrl),  // Aquí se agrega el mapa usando GMapsHtml
+              child: GMapsHtml(url: mapUrl), // Aquí se agrega el mapa usando GMapsHtml
             ),
             SizedBox(height: 20),
           ],

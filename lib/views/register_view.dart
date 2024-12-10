@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:my_ecommerce_app/controllers/user_controller.dart';
 
 class RegisterView extends StatefulWidget {
   @override
@@ -12,7 +14,7 @@ class _RegisterViewState extends State<RegisterView> {
   final _confirmPasswordController = TextEditingController();
   final _addressController = TextEditingController();
 
-  void _register() {
+  void _register(UserController userController) async {
     final name = _nameController.text;
     final email = _emailController.text;
     final password = _passwordController.text;
@@ -29,14 +31,15 @@ class _RegisterViewState extends State<RegisterView> {
       return;
     }
 
-    // Lógica para registrar el usuario
-    print('Registro exitoso con los siguientes datos:');
-    print('Nombre: $name');
-    print('Email: $email');
-    print('Contraseña: $password');
-    print('Dirección: $address');
-
-    Navigator.pushNamed(context, '/home');
+    try {
+      // Llamar al método register del UserController
+      await userController.register(name, email, password, address);
+      // Navegar a otra pantalla si el registro es exitoso
+      Navigator.pushNamed(context, '/home');
+    } catch (e) {
+      // Mostrar un error si ocurre
+      _showErrorDialog(e.toString());
+    }
   }
 
   void _showErrorDialog(String message) {
@@ -59,90 +62,88 @@ class _RegisterViewState extends State<RegisterView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Registro'),
-        backgroundColor: Colors.deepPurple,
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.deepPurple, Colors.purpleAccent],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    return Consumer<UserController>(
+      builder: (context, userController, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Registro'),
+            backgroundColor: Colors.deepPurple,
           ),
-        ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Crea una cuenta',
-                  style: TextStyle(fontSize: 24, color: Colors.white),
-                ),
-                SizedBox(height: 20),
-                // Campo de nombre
-                _buildTextField(
-                  controller: _nameController,
-                  label: 'Nombre',
-                  isPassword: false,
-                ),
-                SizedBox(height: 15),
-                // Campo de correo electrónico
-                _buildTextField(
-                  controller: _emailController,
-                  label: 'Correo electrónico',
-                  isPassword: false,
-                  inputType: TextInputType.emailAddress,
-                ),
-                SizedBox(height: 15),
-                // Campo de contraseña
-                _buildTextField(
-                  controller: _passwordController,
-                  label: 'Contraseña',
-                  isPassword: true,
-                ),
-                SizedBox(height: 15),
-                // Campo para confirmar contraseña
-                _buildTextField(
-                  controller: _confirmPasswordController,
-                  label: 'Confirmar Contraseña',
-                  isPassword: true,
-                ),
-                SizedBox(height: 15),
-                // Campo de dirección
-                _buildTextField(
-                  controller: _addressController,
-                  label: 'Dirección',
-                  isPassword: false,
-                ),
-                SizedBox(height: 30),
-                // Botón de registro
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _register,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
+          body: Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.deepPurple, Colors.purpleAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Crea una cuenta',
+                      style: TextStyle(fontSize: 24, color: Colors.white),
+                    ),
+                    SizedBox(height: 20),
+                    _buildTextField(
+                      controller: _nameController,
+                      label: 'Nombre',
+                      isPassword: false,
+                    ),
+                    SizedBox(height: 15),
+                    _buildTextField(
+                      controller: _emailController,
+                      label: 'Correo electrónico',
+                      isPassword: false,
+                      inputType: TextInputType.emailAddress,
+                    ),
+                    SizedBox(height: 15),
+                    _buildTextField(
+                      controller: _passwordController,
+                      label: 'Contraseña',
+                      isPassword: true,
+                    ),
+                    SizedBox(height: 15),
+                    _buildTextField(
+                      controller: _confirmPasswordController,
+                      label: 'Confirmar Contraseña',
+                      isPassword: true,
+                    ),
+                    SizedBox(height: 15),
+                    _buildTextField(
+                      controller: _addressController,
+                      label: 'Dirección',
+                      isPassword: false,
+                    ),
+                    SizedBox(height: 30),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () => _register(userController),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 15, horizontal: 80),
+                        ),
+                        child: Text(
+                          'Registrar',
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 80),
                     ),
-                    child: Text(
-                      'Registrar',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

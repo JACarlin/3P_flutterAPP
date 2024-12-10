@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:my_ecommerce_app/services/api_service.dart';
+import 'package:my_ecommerce_app/controllers/user_controller.dart';
 
 class LoginView extends StatefulWidget {
   @override
@@ -9,13 +12,8 @@ class _LoginViewState extends State<LoginView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
-    // Aquí va la lógica para iniciar sesión
-    Navigator.pushNamed(context, '/home');
-  }
-
   void _register() {
-    // Aquí va la lógica para redirigir a la pantalla de registro
+    // Lógica para redirigir a la pantalla de registro
     Navigator.pushNamed(context, '/register');
   }
 
@@ -54,6 +52,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                   SizedBox(height: 30),
+                  // Email field
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -68,6 +67,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                   SizedBox(height: 16),
+                  // Password field
                   TextField(
                     controller: _passwordController,
                     obscureText: true,
@@ -82,23 +82,46 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                   SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 30.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                    ),
-                    child: Text(
-                      'Iniciar Sesión',
-                      style: TextStyle(fontSize: 16,
-                      color: Colors.grey[50]
-                      ),
-                    ),
+                  // Login Button
+                  Consumer<UserController>(
+                    builder: (context, loginController, child) {
+                      return ElevatedButton(
+                        onPressed: () async {
+                          // Llamar al método de login del controller
+                          await loginController.login(
+                            _emailController.text,
+                            _passwordController.text,
+                          );
+
+                          // Si el login es exitoso, navega
+                          if (loginController.errorMessage == null) {
+                            Navigator.pushNamed(context, '/home');
+                          } else {
+                            // Si hay error, mostrar mensaje
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(loginController.errorMessage!),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 30.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                        ),
+                        child: Text(
+                          'Iniciar Sesión',
+                          style: TextStyle(fontSize: 16, color: Colors.grey[50]),
+                        ),
+                      );
+                    },
                   ),
                   SizedBox(height: 16),
+                  // Register Link
                   TextButton(
                     onPressed: _register,
                     child: Text(

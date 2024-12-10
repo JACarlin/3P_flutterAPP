@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_ecommerce_app/models/product.dart';
+import 'package:my_ecommerce_app/controllers/product_controller.dart';
+import 'package:provider/provider.dart';
 
 class AddProductPage extends StatefulWidget {
   @override
@@ -11,7 +13,7 @@ class _AddProductPageState extends State<AddProductPage> {
   late TextEditingController _nameController;
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
-  late TextEditingController _imageUrlController;
+  late TextEditingController _urlController;
   late TextEditingController _categoryController;
 
   @override
@@ -20,40 +22,34 @@ class _AddProductPageState extends State<AddProductPage> {
     _nameController = TextEditingController();
     _priceController = TextEditingController();
     _descriptionController = TextEditingController();
-    _imageUrlController = TextEditingController();
+    _urlController = TextEditingController();
     _categoryController = TextEditingController();
   }
 
-  void _addProduct() {
+  void _addProduct(ProductController productController) async {
     if (_formKey.currentState!.validate()) {
-      // Agregar el nuevo producto a la lista
-      Product newProduct = Product(
-        productId: DateTime.now().millisecondsSinceEpoch.toString(),
-        name: _nameController.text,
-        price: double.parse(_priceController.text),
-        description: _descriptionController.text,
-        imageUrl: _imageUrlController.text,
-        category: _categoryController.text,
-      );
-
-      // Aquí deberías agregar el producto a tu base de datos o lista
-      Navigator.pop(context);  // Regresar a la página anterior
+      // Llamar al controlador para agregar el producto
+      productController.addProduct(_nameController.text, _descriptionController.text, double.parse(_priceController.text), _urlController.text, _categoryController.text);
+      // Volver a la página anterior después de agregar el producto
+      Navigator.pop(context, true);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Producto agregado')));
     }
   }
+
 
   @override
   void dispose() {
     _nameController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
-    _imageUrlController.dispose();
+    _urlController.dispose();
     _categoryController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final productController = Provider.of<ProductController>(context);
     return Scaffold(
       appBar: AppBar(title: Text('Agregar Producto')),
       body: Padding(
@@ -79,7 +75,7 @@ class _AddProductPageState extends State<AddProductPage> {
                 validator: (value) => value!.isEmpty ? 'La descripción no puede estar vacía' : null,
               ),
               TextFormField(
-                controller: _imageUrlController,
+                controller: _urlController,
                 decoration: InputDecoration(labelText: 'URL de la imagen'),
                 validator: (value) => value!.isEmpty ? 'La URL de la imagen no puede estar vacía' : null,
               ),
@@ -90,7 +86,7 @@ class _AddProductPageState extends State<AddProductPage> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _addProduct,
+                onPressed: () => _addProduct(productController),
                 child: Text('Agregar Producto'),
               ),
             ],

@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:my_ecommerce_app/controllers/order_controller.dart';
 import 'package:my_ecommerce_app/models/order.dart';
+import 'package:provider/provider.dart'; // Importa el paquete Provider
 
-class OrderListView extends StatelessWidget {
-  final List<Order> orders = [
-    Order(
-      orderId: '67550c5a4469796054a52212',
-      userId: '675505402cf7d29540668525',
-      products: [
-        ProductOrder(productId: '6755061e2cf7d29540668529', quantity: 2, productOrderId: '67550c5a4469796054a52213'),
-        ProductOrder(productId: '675507872cf7d29540668535', quantity: 1, productOrderId: '67550c5a4469796054a52214'),
-      ],
-      total: 4000,
-      status: 'Pending',
-      deliveryLocation: DeliveryLocation(lat: 41.903055555556, lng: 12.454444444444),
-      creationDate: DateTime.parse('2024-12-08T03:02:50.976Z'),
-    ),
-    // Agrega más órdenes aquí
-  ];
+class OrderListView extends StatefulWidget {
+  @override
+  _OrderListViewState createState() => _OrderListViewState();
+}
+
+class _OrderListViewState extends State<OrderListView> {
+  @override
+  void initState() {
+    super.initState();
+    // Llamar a fetchOrders cuando la vista se inicializa
+    final orderController = Provider.of<OrderController>(context, listen: false);
+    orderController.fetchOrders();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,46 +26,59 @@ class OrderListView extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: ListView.builder(
-          itemCount: orders.length,
-          itemBuilder: (context, index) {
-            final order = orders[index];
-            return Card(
-              elevation: 4,
-              margin: EdgeInsets.symmetric(vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                contentPadding: EdgeInsets.all(16),
-                title: Text(
-                  'Orden #${order.orderId}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
+        child: Consumer<OrderController>( // Usamos Consumer para escuchar cambios en OrderController
+          builder: (context, orderController, child) {
+            if (orderController.isLoading) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            if (orderController.errorMessage != null) {
+              return Center(child: Text(orderController.errorMessage!));
+            }
+
+            return ListView.builder(
+              itemCount: orderController.orders.length,
+              itemBuilder: (context, index) {
+                final order = orderController.orders[index];
+                print(order);
+                return Card(
+                  elevation: 4,
+                  margin: EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Total: \$${order.total}'),
-                    SizedBox(height: 4),
-                    Text(
-                      'Estado: ${order.status}',
-                      style: TextStyle(color: _getStatusColor(order.status)),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.all(16),
+                    title: Text(
+                      'Orden #${order['_id']}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
-                    SizedBox(height: 4),
-                    Text('Fecha: ${_formatDate(order.creationDate)}'),
-                  ],
-                ),
-                trailing: Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.deepPurple,
-                ),
-                onTap: () {
-                  Navigator.pushNamed(context, '/orderDetail', arguments: order);
-                },
-              ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Total: \$${order['total']}'),
+                        SizedBox(height: 4),
+                        Text(
+                          'Estado: ${order['status']}',
+                          style: TextStyle(color: _getStatusColor(order['status'])),
+                        ),
+                        SizedBox(height: 4),
+                        Text('Fecha: ${_formatDate(DateTime.parse(order['creationDate']))}'),
+                      ],
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.deepPurple,
+                    ),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/orderDetail', arguments: order);
+                    },
+                  ),
+                );
+              },
             );
           },
         ),

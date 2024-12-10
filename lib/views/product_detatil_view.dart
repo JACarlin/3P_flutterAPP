@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_ecommerce_app/models/product.dart';
+import 'package:provider/provider.dart';
+import 'package:my_ecommerce_app/controllers/product_controller.dart';
 
 class ProductDetailView extends StatelessWidget {
   @override
@@ -22,9 +24,9 @@ class ProductDetailView extends StatelessWidget {
               Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(15.0),
-                  child: product.imageUrl.isNotEmpty
+                  child: product.url.isNotEmpty
                       ? Image.network(
-                          product.imageUrl,
+                          product.url,
                           height: 250,
                           width: double.infinity,
                           fit: BoxFit.cover,
@@ -89,33 +91,54 @@ class ProductDetailView extends StatelessWidget {
               ),
               SizedBox(height: 30),
               // Botón de agregar al carrito
-Center(
-  child: ElevatedButton.icon(
-    onPressed: () {
-      // Acción al agregar al carrito
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${product.name} añadido al carrito'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    },
-    icon: Icon(
-      Icons.shopping_cart,
-      color: Colors.white, // Cambiar el color del ícono aquí
-    ),
-    label: Text(
-      'Agregar al Carrito',
-      style: TextStyle(color: Colors.white), // Cambiar el color del texto aquí
-    ),
-    style: ElevatedButton.styleFrom(
-      backgroundColor: Colors.deepPurple,
-      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-    ),
-  ),
-),
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    try {
+                      // Llamar a la función para agregar el producto al carrito
+                      await context.read<ProductController>().addProductToCart(
+                            product.productId,
+                            product.name,
+                            product.description,
+                            product.price,
+                            product.url,
+                            product.category,
+                          );
 
+                      // Mostrar mensaje de éxito
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('${product.name} añadido al carrito'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
 
+                      // Regresar a la pantalla anterior
+                      Navigator.pop(context);
+                    } catch (e) {
+                      // Mostrar error en caso de fallo
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error al agregar al carrito: $e'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  icon: Icon(
+                    Icons.shopping_cart,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    'Agregar al Carrito',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

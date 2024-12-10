@@ -3,7 +3,7 @@ class Product {
   String name;
   double price;
   String description;
-  String imageUrl;
+  String url; // Cambié url por url
   String category;
 
   Product({
@@ -11,7 +11,7 @@ class Product {
     required this.name,
     required this.price,
     required this.description,
-    required this.imageUrl,
+    required this.url, // Cambié url por url
     required this.category,
   });
 
@@ -22,7 +22,7 @@ class Product {
       'name': name,
       'price': price,
       'description': description,
-      'imageUrl': imageUrl,
+      'url': url, // Cambié url por url
       'category': category,
     };
   }
@@ -30,11 +30,11 @@ class Product {
   // Método para crear un objeto de producto desde un mapa (para recibir desde la API)
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      productId: json['productId'] ?? '', // Valor predeterminado en caso de nulo
+      productId: json['_id'] ?? '', // Valor predeterminado en caso de nulo
       name: json['name'] ?? '',
       price: (json['price'] is int) ? (json['price'] as int).toDouble() : json['price'],
       description: json['description'] ?? '',
-      imageUrl: json['imageUrl'] ?? '',
+      url: json['url'] ?? '', // Cambié url por url
       category: json['category'] ?? '',
     );
   }

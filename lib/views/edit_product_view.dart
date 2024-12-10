@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_ecommerce_app/models/product.dart';
+import 'package:my_ecommerce_app/controllers/product_controller.dart';
+import 'package:provider/provider.dart';
 
 class EditProductPage extends StatefulWidget {
   @override
@@ -31,20 +33,27 @@ class _EditProductPageState extends State<EditProductPage> {
     super.dispose();
   }
 
-  void _saveProduct() {
+  void _saveProduct(ProductController productController) {
     if (_formKey.currentState!.validate()) {
       setState(() {
         product.name = _nameController.text;
         product.price = double.parse(_priceController.text);
         product.description = _descriptionController.text;
       });
+
+      // Usar el ProductController para actualizar el producto
+      productController.updateProduct(product);
+
       Navigator.pop(context);  // Regresar a la página anterior
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Producto actualizado')));
     }
   }
+  
 
   @override
   Widget build(BuildContext context) {
+    final productController = Provider.of<ProductController>(context);
+
     return Scaffold(
       appBar: AppBar(title: Text('Editar Producto')),
       body: Padding(
@@ -71,7 +80,7 @@ class _EditProductPageState extends State<EditProductPage> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _saveProduct,
+                onPressed: () => _saveProduct(productController),
                 child: Text('Guardar Cambios'),
               ),
             ],
